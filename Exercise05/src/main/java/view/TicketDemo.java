@@ -2,9 +2,6 @@ package view;
 
 import static utils.CustomerUtils.*;
 
-
-
-
 public class TicketDemo {
 
 	public static void main(String[] args) {

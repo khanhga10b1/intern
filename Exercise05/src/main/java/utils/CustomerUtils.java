@@ -1,11 +1,11 @@
 package utils;
 
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
-
 import common.CustomerObject;
 import entities.Customer;
 import entities.Ticket;
@@ -76,7 +76,7 @@ public class CustomerUtils {
 			System.out.println("Chọn chuyến đi cần thay đổi.");
 			List<Trip> trips = tripService.getAllTrips();
 			for (int i = 0; i < trips.size(); i++) {
-				System.out.println(i + 1 + ". " + trips.get(i));
+				System.out.println(i + 1 + ". " + trips.get(i)+" đã đặt: "+slot(trips.get(i)));
 			}
 			System.out.println(trips.size() + 1 + ". Quay lại.");
 			index = inputNumber();
@@ -148,13 +148,19 @@ public class CustomerUtils {
 		System.out.println("Chọn chuyến đi cần đặt vé.");
 		List<Trip> trips = tripService.getAllTrips();
 		for (int i = 0; i < trips.size(); i++) {
-			System.out.println(i + 1 + ". " + trips.get(i));
+			System.out.println(i + 1 + ". " + trips.get(i)+" đã đặt: "+slot(trips.get(i)));
 		}
 		System.out.println(trips.size() + 1 + ". Quay lại.");
 		index = inputNumber();
 		if (index == trips.size() + 1) {
 			return;
 		}
+		if(trips.get(index-1).getSlot()==slot(trips.get(index-1))) {
+			System.out.println("Chuyến đi đã đầy");
+			return;
+		}
+		
+		
 		System.out.print("Nhập SĐT: ");
 		String phone = sc.nextLine();
 		Customer customer = customerService.checkCustomer(phone);
@@ -164,8 +170,21 @@ public class CustomerUtils {
 			customer.setName(sc.nextLine());
 			customer.setPhone(phone);
 		}
+		customerService.addCustomer(customer);
 		System.out.print("Chọn số vé cần đặt: ");
 		count = inputNumber();
+		while(true) {
+			int check = count +slot(trips.get(index-1));
+			int leftSlot =trips.get(index-1).getSlot()-slot(trips.get(index-1));
+			if(check>trips.get(index-1).getSlot()) {
+				System.out.println("số vé còn lại bằng: "+leftSlot+" vui lòng chọn lại");
+				count = inputNumber();
+			}else {
+				break;
+			}
+			
+		}
+		
 		for (int i = 0; i < count; i++) {
 			Ticket ticket = new Ticket();
 			ticket.setCustomer(customer);
@@ -180,6 +199,9 @@ public class CustomerUtils {
 			ticketService.addTicket(ticket);
 		}
 
+	}
+	private static int slot(Trip trip) {
+		return (int) ticketService.getAllTickets().stream().filter(s->s.getTrip().equals(trip)).count();
 	}
 
 	public static int inputNumber() {
